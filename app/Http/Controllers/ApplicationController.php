@@ -52,6 +52,12 @@ class ApplicationController extends Controller
             }
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | APLIKASI POPULER
+        |--------------------------------------------------------------------------
+        */
+
         $popularApplications = Application::query()
             ->where('is_active', true)
             ->withCount('visits')
@@ -77,6 +83,87 @@ class ApplicationController extends Controller
             )
         );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | LIVE SEARCH
+    |--------------------------------------------------------------------------
+    |
+    | Endpoint ini digunakan oleh JavaScript ketika user mengetik
+    | pada kolom pencarian.
+    |
+    */
+
+    public function search(Request $request)
+    {
+        $search = trim(
+            $request->input('search', '')
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Jika pencarian kosong
+        |--------------------------------------------------------------------------
+        */
+
+        if ($search === '') {
+            return response()->json([]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Cari aplikasi berdasarkan nama atau deskripsi
+        |--------------------------------------------------------------------------
+        */
+
+        $applications = Application::query()
+            ->where('is_active', true)
+            ->where(function ($query) use ($search) {
+                $query->where(
+                    'name',
+                    'like',
+                    '%' . $search . '%'
+                )
+                ->orWhere(
+                    'description',
+                    'like',
+                    '%' . $search . '%'
+                );
+            })
+            ->orderBy('name')
+            ->get([
+                'id',
+                'name',
+                'description',
+                'icon',
+                'notification_type',
+                'notification_expires_at',
+            ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | HANYA TAMPILKAN BADGE YANG MASIH BERLAKU
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($applications as $application) {
+            if (
+                !$application->hasActiveNotification()
+            ) {
+                $application->notification_type = null;
+            }
+        }
+
+        return response()->json(
+            $applications
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | APLIKASI POPULER
+    |--------------------------------------------------------------------------
+    */
 
     public function popular()
     {

@@ -22,10 +22,36 @@ Route::get('/', [
     'index'
 ])->name('applications.index');
 
+
+/*
+|--------------------------------------------------------------------------
+| APLIKASI POPULER
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/applications/popular', [
     ApplicationController::class,
     'popular'
 ])->name('applications.popular');
+
+
+/*
+|--------------------------------------------------------------------------
+| LIVE SEARCH APLIKASI
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/applications/search', [
+    ApplicationController::class,
+    'search'
+])->name('applications.search');
+
+
+/*
+|--------------------------------------------------------------------------
+| BUKA APLIKASI
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/applications/{application}/open', [
     ApplicationVisitController::class,
