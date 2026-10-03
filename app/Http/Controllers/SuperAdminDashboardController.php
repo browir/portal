@@ -151,7 +151,6 @@ class SuperAdminDashboardController extends Controller
                 'usageChange',
                 'usageTrend',
                 'usedApplications',
-                'months',
                 'trend',
                 'sixMonthTotal',
                 'averagePerMonth',
