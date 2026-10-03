@@ -83,6 +83,19 @@ Route::post('/superadmin/logout', [
 
 /*
 |--------------------------------------------------------------------------
+| HALAMAN SUPER ADMIN (WAJIB LOGIN)
+|--------------------------------------------------------------------------
+|
+| Semua route di dalam grup ini hanya bisa diakses oleh user yang sudah
+| login dan memiliki is_super_admin = true (middleware SuperAdmin).
+|
+*/
+
+Route::middleware('superadmin')->group(function () {
+
+
+/*
+|--------------------------------------------------------------------------
 | SUPER ADMIN DASHBOARD
 |--------------------------------------------------------------------------
 */
@@ -187,3 +200,6 @@ Route::put('/superadmin/account', [
 ])
     ->middleware('auth')
     ->name('superadmin.account.update');
+
+
+});

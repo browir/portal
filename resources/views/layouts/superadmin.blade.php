@@ -46,11 +46,115 @@
             left: 0;
             width: 100%;
             height: 50px;
-            background: #5b8260;
+            background: #ffffff;
+            border-bottom: 1px solid #eef1f3;
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            gap: 12px;
             padding: 0 20px;
             z-index: 1000;
+        }
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .header-profile {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-width: 0;
+            padding: 4px 10px 4px 4px;
+            border-radius: 999px;
+            text-decoration: none;
+            color: #1e293b;
+            transition: background-color 0.2s ease;
+        }
+
+        .header-profile:hover {
+            background: #f1f5f9;
+        }
+
+        .header-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #d2e3d7;
+            color: #2e4e3f;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .header-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .header-name {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            line-height: 1.2;
+        }
+
+        .header-name strong {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .header-name span {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        .logout-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 34px;
+            padding: 0 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .logout-button:hover {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #b91c1c;
+        }
+
+        .logout-button svg {
+            width: 15px;
+            height: 15px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         .logo-wrapper {
@@ -227,8 +331,24 @@
             }
 
             .logo-wrapper img {
-                width: 145px;
-                height: 42px;
+                width: 125px;
+                height: 40px;
+            }
+
+            /* Layar sempit: cukup avatar dan ikon logout */
+            .header-name,
+            .logout-button span {
+                display: none;
+            }
+
+            .header-profile {
+                padding: 4px;
+            }
+
+            .logout-button {
+                width: 34px;
+                padding: 0;
+                justify-content: center;
             }
 
             .sidebar-menu a {
@@ -256,12 +376,63 @@
 <div class="app-container">
 
     <header class="header">
-        <div class="logo-wrapper">
+        <a href="{{ route('superadmin.dashboard') }}" class="logo-wrapper">
             <img
                 src="{{ asset('images/logo-new.png') }}"
                 alt="Portal PT. Syifa Global Group"
             >
-        </div>
+        </a>
+
+        @auth
+            @php
+                $adminUser = auth()->user();
+            @endphp
+
+            <div class="header-user">
+
+                <a
+                    href="{{ route('superadmin.account') }}"
+                    class="header-profile"
+                    title="Pengaturan akun"
+                >
+                    <span class="header-avatar">
+                        @if ($adminUser->profile_photo)
+                            <img
+                                src="{{ asset('storage/' . $adminUser->profile_photo) }}"
+                                alt=""
+                            >
+                        @else
+                            {{ mb_strtoupper(mb_substr($adminUser->name, 0, 1)) }}
+                        @endif
+                    </span>
+
+                    <span class="header-name">
+                        <strong>{{ $adminUser->name }}</strong>
+                        <span>Super Admin</span>
+                    </span>
+                </a>
+
+                <form
+                    method="POST"
+                    action="{{ route('superadmin.logout') }}"
+                    class="logout-form"
+                    onsubmit="return confirm('Keluar dari halaman Super Admin?');"
+                >
+                    @csrf
+
+                    <button type="submit" class="logout-button" title="Keluar">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+
+                        <span>Keluar</span>
+                    </button>
+                </form>
+
+            </div>
+        @endauth
     </header>
 
     <div class="content-wrapper">

@@ -19,22 +19,29 @@ class SuperAdminDashboardController extends Controller
             true
         )->count();
 
-        $inactiveApplications = Application::where(
-            'is_active',
-            false
-        )->count();
+        $inactiveApplications = $totalApplications - $activeApplications;
 
         $currentMonthStart = $now->copy()->startOfMonth();
 
         $currentMonthEnd = $now->copy()->endOfMonth();
 
         $lastMonthStart = $now->copy()
-            ->subMonth()
+            ->subMonthNoOverflow()
             ->startOfMonth();
 
         $lastMonthEnd = $now->copy()
-            ->subMonth()
+            ->subMonthNoOverflow()
             ->endOfMonth();
+
+        $sixMonthStart = $now->copy()
+            ->subMonthsNoOverflow(5)
+            ->startOfMonth();
+
+        /*
+        |--------------------------------------------------------------------------
+        | KUNJUNGAN BULAN INI VS BULAN LALU
+        |--------------------------------------------------------------------------
+        */
 
         $currentMonthVisits = ApplicationVisit::whereBetween(
             'visited_at',
@@ -52,224 +59,79 @@ class SuperAdminDashboardController extends Controller
             ]
         )->count();
 
-        if ($lastMonthUsage > 0) {
-            $usageChange = round(
-                (
-                    (
-                        $currentMonthVisits -
-                        $lastMonthUsage
-                    ) /
-                    $lastMonthUsage
-                ) * 100,
-                1
-            );
-        } elseif ($currentMonthVisits > 0) {
-            $usageChange = 100;
-        } else {
-            $usageChange = 0;
-        }
-
-        if ($usageChange > 0) {
-            $usageTrend = 'up';
-        } elseif ($usageChange < 0) {
-            $usageTrend = 'down';
-        } else {
-            $usageTrend = 'same';
-        }
+        [$usageChange, $usageTrend] = $this->calculateTrend(
+            $currentMonthVisits,
+            $lastMonthUsage
+        );
 
         $usedApplications = Application::whereHas(
             'visits'
         )->count();
 
-        $historyApplications = Application::whereHas(
-            'visits'
-        )->count();
-
-        $monthlyLabels = [];
-
-        $monthlyUsage = [];
+        /*
+        |--------------------------------------------------------------------------
+        | TREN 6 BULAN TERAKHIR
+        |--------------------------------------------------------------------------
+        */
 
         $months = [];
 
         for ($i = 5; $i >= 0; $i--) {
-            $month = $now->copy()->subMonths($i);
-
-            $start = $month->copy()->startOfMonth();
-
-            $end = $month->copy()->endOfMonth();
-
-            $count = ApplicationVisit::whereBetween(
-                'visited_at',
-                [
-                    $start,
-                    $end
-                ]
-            )->count();
-
-            $label = $month->format('M Y');
-
-            $monthlyLabels[] = $label;
-
-            $monthlyUsage[] = $count;
+            $month = $now->copy()->subMonthsNoOverflow($i);
 
             $months[] = [
-                'label' => $label,
-                'total' => $count
-            ];
-        }
-
-        $maxUsage = max(
-            $monthlyUsage ?: [0]
-        );
-
-        if ($maxUsage <= 0) {
-            $maxUsage = 1;
-        }
-
-        $chartWidth = 600;
-
-        $chartHeight = 130;
-
-        $chartBottom = 110;
-
-        $chartTop = 10;
-
-        $numberOfPoints = count(
-            $monthlyUsage
-        );
-
-        if ($numberOfPoints > 1) {
-            $xStep = $chartWidth /
-                ($numberOfPoints - 1);
-        } else {
-            $xStep = 0;
-        }
-
-        $chartPoints = [];
-
-        $polylinePointsArray = [];
-
-        foreach (
-            $monthlyUsage as $index => $usage
-        ) {
-            $x = $index * $xStep;
-
-            $y = $chartBottom -
-                (
-                    ($usage / $maxUsage) *
-                    ($chartBottom - $chartTop)
-                );
-
-            $x = round($x, 2);
-
-            $y = round($y, 2);
-
-            $label = $monthlyLabels[$index]
-                ?? '';
-
-            $chartPoints[] = [
-                'x' => $x,
-                'y' => $y,
-                'value' => $usage,
-                'total' => $usage,
-                'label' => $label
-            ];
-
-            $polylinePointsArray[] =
-                $x . ',' . $y;
-        }
-
-        $polylinePoints = implode(
-            ' ',
-            $polylinePointsArray
-        );
-
-        $popularApplications = Application::withCount(
-            'visits'
-        )
-            ->orderByDesc('visits_count')
-            ->orderBy('name')
-            ->take(3)
-            ->get();
-
-        $sixMonthStart = $now->copy()
-            ->subMonths(5)
-            ->startOfMonth();
-
-        $sixMonthEnd = $now->copy()
-            ->endOfMonth();
-
-        $applicationUsage = Application::withCount([
-            'visits' => function ($query) use (
-                $sixMonthStart,
-                $sixMonthEnd
-            ) {
-                $query->whereBetween(
+                'label' => $month->locale('id')->translatedFormat('M'),
+                'full_label' => $month->locale('id')->translatedFormat('F Y'),
+                'total' => ApplicationVisit::whereBetween(
                     'visited_at',
                     [
-                        $sixMonthStart,
-                        $sixMonthEnd
+                        $month->copy()->startOfMonth(),
+                        $month->copy()->endOfMonth()
                     ]
-                );
-            }
+                )->count(),
+            ];
+        }
+
+        $sixMonthTotal = array_sum(
+            array_column($months, 'total')
+        );
+
+        $averagePerMonth = (int) round($sixMonthTotal / 6);
+
+        $chart = $this->buildChart($months);
+
+        /*
+        |--------------------------------------------------------------------------
+        | PENGGUNAAN PER APLIKASI
+        |--------------------------------------------------------------------------
+        |
+        | Semua hitungan diambil dalam satu query (tanpa query per aplikasi).
+        |
+        */
+
+        $applicationUsage = Application::withCount([
+            'visits' => fn ($query) => $query->whereBetween(
+                'visited_at',
+                [$sixMonthStart, $currentMonthEnd]
+            ),
+            'visits as current_month_visits' => fn ($query) => $query->whereBetween(
+                'visited_at',
+                [$currentMonthStart, $currentMonthEnd]
+            ),
+            'visits as last_month_visits' => fn ($query) => $query->whereBetween(
+                'visited_at',
+                [$lastMonthStart, $lastMonthEnd]
+            ),
         ])
             ->orderByDesc('visits_count')
             ->orderBy('name')
             ->get();
 
-        foreach (
-            $applicationUsage as $application
-        ) {
-            $currentUsage = ApplicationVisit::where(
-                'application_id',
-                $application->id
-            )
-                ->whereBetween(
-                    'visited_at',
-                    [
-                        $currentMonthStart,
-                        $currentMonthEnd
-                    ]
-                )
-                ->count();
-
-            $previousUsage = ApplicationVisit::where(
-                'application_id',
-                $application->id
-            )
-                ->whereBetween(
-                    'visited_at',
-                    [
-                        $lastMonthStart,
-                        $lastMonthEnd
-                    ]
-                )
-                ->count();
-
-            if ($previousUsage > 0) {
-                $change = round(
-                    (
-                        (
-                            $currentUsage -
-                            $previousUsage
-                        ) /
-                        $previousUsage
-                    ) * 100,
-                    1
-                );
-            } elseif ($currentUsage > 0) {
-                $change = 100;
-            } else {
-                $change = 0;
-            }
-
-            if ($change > 0) {
-                $trend = 'up';
-            } elseif ($change < 0) {
-                $trend = 'down';
-            } else {
-                $trend = 'same';
-            }
+        foreach ($applicationUsage as $application) {
+            [$change, $trend] = $this->calculateTrend(
+                $application->current_month_visits,
+                $application->last_month_visits
+            );
 
             $application->usage_change = $change;
 
@@ -301,18 +163,109 @@ class SuperAdminDashboardController extends Controller
                 'usageChange',
                 'usageTrend',
                 'usedApplications',
-                'historyApplications',
-                'monthlyLabels',
-                'monthlyUsage',
                 'months',
-                'maxUsage',
-                'chartPoints',
-                'polylinePoints',
-                'popularApplications',
+                'sixMonthTotal',
+                'averagePerMonth',
+                'chart',
                 'veryActiveApplications',
                 'rarelyUsedApplications',
                 'mostActiveCount'
             )
         );
+    }
+
+    /**
+     * Persentase perubahan dan arah tren (up / down / same).
+     */
+    private function calculateTrend(int $current, int $previous): array
+    {
+        if ($previous > 0) {
+            $change = round(
+                (($current - $previous) / $previous) * 100,
+                1
+            );
+        } elseif ($current > 0) {
+            $change = 100;
+        } else {
+            $change = 0;
+        }
+
+        $trend = match (true) {
+            $change > 0 => 'up',
+            $change < 0 => 'down',
+            default => 'same',
+        };
+
+        return [$change, $trend];
+    }
+
+    /**
+     * Koordinat grafik garis untuk SVG (viewBox 640 x 240).
+     */
+    private function buildChart(array $months): array
+    {
+        $width = 640;
+        $height = 240;
+        $paddingLeft = 40;
+        $paddingRight = 20;
+        $paddingTop = 28;
+        $paddingBottom = 34;
+
+        $maxValue = max(array_column($months, 'total') ?: [0]);
+
+        // Bulatkan batas atas sumbu Y ke kelipatan 4 supaya label gridnya rapi
+        $yMax = max(4, (int) ceil($maxValue / 4) * 4);
+
+        $plotWidth = $width - $paddingLeft - $paddingRight;
+        $plotHeight = $height - $paddingTop - $paddingBottom;
+        $bottom = $paddingTop + $plotHeight;
+
+        $step = count($months) > 1
+            ? $plotWidth / (count($months) - 1)
+            : 0;
+
+        $points = [];
+
+        foreach ($months as $index => $month) {
+            $points[] = [
+                'x' => round($paddingLeft + ($index * $step), 2),
+                'y' => round($bottom - (($month['total'] / $yMax) * $plotHeight), 2),
+                'total' => $month['total'],
+                'label' => $month['label'],
+                'full_label' => $month['full_label'],
+            ];
+        }
+
+        $gridLines = [];
+
+        for ($i = 0; $i <= 4; $i++) {
+            $gridLines[] = [
+                'y' => round($bottom - (($i / 4) * $plotHeight), 2),
+                'value' => (int) ($yMax * $i / 4),
+            ];
+        }
+
+        $line = collect($points)
+            ->map(fn ($point) => $point['x'] . ',' . $point['y'])
+            ->implode(' ');
+
+        $first = $points[0] ?? ['x' => $paddingLeft];
+        $last = end($points) ?: ['x' => $paddingLeft];
+
+        $area = $line
+            . ' ' . $last['x'] . ',' . $bottom
+            . ' ' . $first['x'] . ',' . $bottom;
+
+        return [
+            'width' => $width,
+            'height' => $height,
+            'left' => $paddingLeft,
+            'right' => $width - $paddingRight,
+            'bottom' => $bottom,
+            'points' => $points,
+            'grid' => $gridLines,
+            'line' => $line,
+            'area' => $area,
+        ];
     }
 }
