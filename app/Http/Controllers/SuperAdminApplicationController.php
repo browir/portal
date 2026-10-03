@@ -9,15 +9,68 @@ use Illuminate\Support\Facades\Storage;
 
 class SuperAdminApplicationController extends Controller
 {
-    public function index()
+    /*
+    |--------------------------------------------------------------------------
+    | KELOLA APLIKASI
+    |--------------------------------------------------------------------------
+    */
+
+    public function index(Request $request)
     {
-        $applications = Application::orderBy('name')->get();
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH APLIKASI
+        |--------------------------------------------------------------------------
+        |
+        | Search digunakan pada halaman Kelola Aplikasi.
+        | Pencarian berdasarkan:
+        | - Nama aplikasi
+        | - URL
+        | - Deskripsi
+        |
+        */
+
+        $search = trim(
+            $request->input('search', '')
+        );
+
+        $applications = Application::query()
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where(
+                        'name',
+                        'like',
+                        '%' . $search . '%'
+                    )
+                    ->orWhere(
+                        'url',
+                        'like',
+                        '%' . $search . '%'
+                    )
+                    ->orWhere(
+                        'description',
+                        'like',
+                        '%' . $search . '%'
+                    );
+                });
+            })
+            ->orderBy('name')
+            ->get();
 
         return view(
             'superadmin.applications.index',
-            compact('applications')
+            compact(
+                'applications',
+                'search'
+            )
         );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SEMUA APLIKASI
+    |--------------------------------------------------------------------------
+    */
 
     public function allApplications(Request $request)
     {
@@ -67,12 +120,24 @@ class SuperAdminApplicationController extends Controller
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | TAMBAH APLIKASI
+    |--------------------------------------------------------------------------
+    */
+
     public function create()
     {
         return view(
             'superadmin.applications.create'
         );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SIMPAN APLIKASI
+    |--------------------------------------------------------------------------
+    */
 
     public function store(Request $request)
     {
@@ -116,8 +181,8 @@ class SuperAdminApplicationController extends Controller
         | APLIKASI BARU
         |--------------------------------------------------------------------------
         |
-        | Setiap aplikasi yang baru ditambahkan
-        | otomatis mendapatkan badge NEW selama 7 hari.
+        | Aplikasi baru mendapatkan badge NEW
+        | selama 7 hari.
         |
         */
 
@@ -154,6 +219,12 @@ class SuperAdminApplicationController extends Controller
             );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | EDIT APLIKASI
+    |--------------------------------------------------------------------------
+    */
+
     public function edit(Application $application)
     {
         return view(
@@ -161,6 +232,12 @@ class SuperAdminApplicationController extends Controller
             compact('application')
         );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE APLIKASI
+    |--------------------------------------------------------------------------
+    */
 
     public function update(
         Request $request,
@@ -210,17 +287,6 @@ class SuperAdminApplicationController extends Controller
         |--------------------------------------------------------------------------
         | PEMBERITAHUAN
         |--------------------------------------------------------------------------
-        |
-        | Jika admin memilih UPDATE,
-        | maka badge UPDATE aktif selama 7 hari.
-        |
-        | Jika admin memilih NEW,
-        | maka badge NEW aktif selama 7 hari.
-        |
-        | Jika admin memilih "Tidak ada pemberitahuan",
-        | maka notification_type dikosongkan dan tanggal
-        | kedaluwarsa juga dikosongkan.
-        |
         */
 
         $notificationType =
@@ -277,6 +343,12 @@ class SuperAdminApplicationController extends Controller
             );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | HAPUS APLIKASI
+    |--------------------------------------------------------------------------
+    */
+
     public function destroy(
         Application $application
     ) {
@@ -297,6 +369,12 @@ class SuperAdminApplicationController extends Controller
                 'Aplikasi berhasil dihapus.'
             );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | TOGGLE STATUS
+    |--------------------------------------------------------------------------
+    */
 
     public function toggleStatus(
         Application $application
