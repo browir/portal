@@ -116,14 +116,14 @@ class SuperAdminDashboardController extends Controller
             ->get();
 
         foreach ($applicationUsage as $application) {
-            [$change, $trend] = $this->calculateTrend(
+            [$applicationChange, $applicationTrend] = $this->calculateTrend(
                 $application->current_month_visits,
                 $application->last_month_visits
             );
 
-            $application->usage_change = $change;
+            $application->usage_change = $applicationChange;
 
-            $application->usage_trend = $trend;
+            $application->usage_trend = $applicationTrend;
         }
 
         $veryActiveApplications = $applicationUsage
