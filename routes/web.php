@@ -9,6 +9,7 @@ use App\Http\Controllers\SuperAdminAuthController;
 use App\Http\Controllers\SuperAdminApplicationController;
 use App\Http\Controllers\SuperAdminDashboardController;
 use App\Http\Controllers\SuperAdminAccountController;
+use App\Http\Controllers\SuperAdminSettingController;
 
 
 /*
@@ -205,6 +206,28 @@ Route::put('/superadmin/account', [
 ])
     ->middleware('auth')
     ->name('superadmin.account.update');
+
+
+/*
+|--------------------------------------------------------------------------
+| PENGATURAN PORTAL (LOGO)
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/superadmin/settings', [
+    SuperAdminSettingController::class,
+    'index'
+])->name('superadmin.settings');
+
+Route::post('/superadmin/settings/logo', [
+    SuperAdminSettingController::class,
+    'updateLogo'
+])->name('superadmin.settings.logo.update');
+
+Route::delete('/superadmin/settings/logo', [
+    SuperAdminSettingController::class,
+    'resetLogo'
+])->name('superadmin.settings.logo.reset');
 
 
 });

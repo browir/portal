@@ -50,7 +50,7 @@
             <a href="#beranda" class="brand" aria-label="Portal PT. Syifa Global Group - ke beranda">
 
                 <img
-                    src="{{ asset('images/logo-new.png') }}"
+                    src="{{ \App\Models\Setting::logoUrl() }}"
                     alt="Portal PT. Syifa Global Group"
                     class="logo-img"
                 >
