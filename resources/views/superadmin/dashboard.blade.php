@@ -175,6 +175,7 @@
     .kpi-icon.is-blue   { background: #e0ecff; color: #1d4ed8; }
     .kpi-icon.is-gray   { background: #f1f5f9; color: #475569; }
     .kpi-icon.is-accent { background: #dff5ef; color: var(--accent); }
+    .kpi-icon.is-warn   { background: #fef3c7; color: #b45309; }
 
     .kpi-value {
         font-size: 32px;
@@ -313,16 +314,20 @@
 
     /* ---------- GRAFIK ---------- */
 
-    .chart-scroll {
+    .chart-wrap {
         position: relative;
-        overflow-x: auto;
     }
 
     .trend-chart {
+        width: 100%;
+        height: 250px;
+    }
+
+    .trend-chart svg {
         display: block;
         width: 100%;
-        height: auto;
-        min-width: 480px;
+        height: 100%;
+        overflow: visible;
     }
 
     .trend-chart .grid-line {
@@ -332,13 +337,180 @@
 
     .trend-chart .axis-label {
         fill: #94a3b8;
-        font-size: 12px;
+        font-size: 11px;
     }
 
     .trend-chart .month-label {
         fill: var(--muted);
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 500;
+    }
+
+    .trend-chart .bar {
+        fill: #b9d3c1;
+        transition: fill .15s ease;
+    }
+
+    .trend-chart .bar.is-current {
+        fill: var(--brand-500);
+    }
+
+    .trend-chart .bar-hover {
+        fill: #f1f5f3;
+        opacity: 0;
+        transition: opacity .15s ease;
+    }
+
+    .trend-chart .hit-area {
+        fill: transparent;
+        cursor: pointer;
+    }
+
+    .trend-chart .is-hovered .bar {
+        fill: var(--brand-700);
+    }
+
+    .trend-chart .is-hovered .bar-hover {
+        opacity: 1;
+    }
+
+    .trend-chart .bar-value {
+        fill: var(--ink);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .chart-wrap.is-loading .trend-chart {
+        opacity: .4;
+        transition: opacity .2s ease;
+    }
+
+
+    /* ---------- FILTER RENTANG WAKTU ---------- */
+
+    .chart-filter {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .segmented {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 2px;
+        padding: 3px;
+        border-radius: 10px;
+        background: #f1f5f3;
+    }
+
+    .segmented button {
+        height: 30px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--muted);
+        font: inherit;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color .15s ease, color .15s ease;
+    }
+
+    .segmented button:hover {
+        color: var(--ink);
+    }
+
+    .segmented button.is-active {
+        background: #ffffff;
+        color: var(--brand-700);
+        font-weight: 600;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, .12);
+    }
+
+    .custom-range {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .custom-range[hidden] {
+        display: none;
+    }
+
+    .custom-range label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .custom-range input {
+        height: 34px;
+        padding: 0 8px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        color: var(--ink);
+        font: inherit;
+        font-size: 12px;
+    }
+
+    .custom-range input:focus {
+        outline: none;
+        border-color: var(--brand-500);
+        box-shadow: 0 0 0 3px rgba(91, 130, 102, .18);
+    }
+
+    .btn-apply {
+        height: 34px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--brand-700);
+        color: #ffffff;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-apply:hover {
+        background: var(--brand-900);
+    }
+
+    .chart-error {
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: var(--down);
+    }
+
+    .chart-error[hidden] {
+        display: none;
+    }
+
+    .chart-tooltip {
+        position: absolute;
+        z-index: 2;
+        padding: 7px 11px;
+        border-radius: 8px;
+        background: var(--ink);
+        color: #ffffff;
+        font-size: 12px;
+        line-height: 1.35;
+        white-space: nowrap;
+        pointer-events: none;
+        transform: translate(-50%, calc(-100% - 12px));
+        box-shadow: 0 8px 20px -8px rgba(15, 23, 42, .5);
+    }
+
+    .chart-tooltip strong {
+        display: block;
+        font-size: 13px;
     }
 
     .trend-chart .month-label.is-current {
@@ -346,41 +518,17 @@
         font-weight: 700;
     }
 
-    .trend-chart .area {
-        fill: url(#trendAreaFill);
-    }
-
-    .trend-chart .line {
-        fill: none;
-        stroke: var(--brand-500);
-        stroke-width: 3;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-    }
-
-    .trend-chart .point {
-        fill: #ffffff;
-        stroke: var(--brand-500);
-        stroke-width: 3;
-    }
-
-    .trend-chart .point.is-current {
-        fill: var(--brand-500);
-    }
-
-    .trend-chart .point-value {
-        fill: var(--ink);
-        font-size: 13px;
-        font-weight: 700;
-    }
-
     .chart-empty {
         position: absolute;
-        inset: 0 0 30px;
+        inset: 0 0 28px 36px;
         display: flex;
         align-items: center;
         justify-content: center;
         pointer-events: none;
+    }
+
+    .chart-empty[hidden] {
+        display: none;
     }
 
     .chart-empty span {
@@ -643,6 +791,10 @@
             padding: 16px;
         }
 
+        .trend-chart {
+            height: 220px;
+        }
+
     }
 
     @media (max-width: 420px) {
@@ -682,13 +834,21 @@
         ? round(($usedApplications / $totalApplications) * 100)
         : 0;
 
+    $notUsedApplications = max(0, $totalApplications - $usedApplications);
+
     $trendIcons = [
         'up' => '<polyline points="18 15 12 9 6 15"></polyline>',
+        'new' => '<polyline points="18 15 12 9 6 15"></polyline>',
         'down' => '<polyline points="6 9 12 15 18 9"></polyline>',
         'same' => '<line x1="6" y1="12" x2="18" y2="12"></line>',
     ];
 
-    $lastPointIndex = count($chart['points']) - 1;
+    // Teks chip tren: "Baru" jika bulan lalu 0, selain itu persentase
+    $trendText = fn ($trend, $change) => match ($trend) {
+        'new' => 'Baru',
+        'same' => '0%',
+        default => abs($change) . '%',
+    };
 @endphp
 
 <div class="dashboard-page">
@@ -843,11 +1003,15 @@
             <div class="kpi-value">{{ number_format($currentMonthVisits, 0, ',', '.') }}</div>
 
             <div class="kpi-foot">
-                <span class="trend-chip {{ $usageTrend }}">
-                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">{!! $trendIcons[$usageTrend] !!}</svg>
-                    {{ $usageTrend === 'same' ? '0%' : abs($usageChange) . '%' }}
-                </span>
-                vs bulan lalu
+                @if ($usageTrend === 'new')
+                    Bulan lalu belum ada kunjungan
+                @else
+                    <span class="trend-chip {{ $usageTrend }}">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">{!! $trendIcons[$usageTrend] !!}</svg>
+                        {{ $trendText($usageTrend, $usageChange) }}
+                    </span>
+                    vs bulan lalu ({{ number_format($lastMonthUsage, 0, ',', '.') }})
+                @endif
             </div>
         </div>
 
@@ -865,90 +1029,81 @@
 
             <div class="panel-head">
                 <div>
-                    <h2 class="panel-title">Tren Kunjungan</h2>
-                    <p class="panel-subtitle">Jumlah aplikasi dibuka dari portal, 6 bulan terakhir</p>
+                    <h2 class="panel-title">Tren Kunjungan per Bulan</h2>
+                    <p class="panel-subtitle" id="trendPeriod">{{ $trend['period_label'] }}</p>
                 </div>
 
                 <div class="panel-stat">
-                    <strong>{{ number_format($sixMonthTotal, 0, ',', '.') }}</strong>
-                    <span>total kunjungan</span>
+                    <strong id="trendTotal">{{ number_format($trend['total'], 0, ',', '.') }}</strong>
+                    <span>
+                        total &middot; rata-rata
+                        <span id="trendAverage">{{ number_format($trend['average'], 0, ',', '.') }}</span>/bulan
+                    </span>
                 </div>
             </div>
 
 
-            <div class="chart-scroll">
+            {{-- FILTER RENTANG WAKTU --}}
+            <div class="chart-filter">
 
-                <svg
+                <div class="segmented" role="group" aria-label="Rentang waktu">
+                    <button type="button" data-range="3">3 Bulan</button>
+                    <button type="button" data-range="6" class="is-active" aria-pressed="true">6 Bulan</button>
+                    <button type="button" data-range="12">12 Bulan</button>
+                    <button type="button" data-range="ytd">Tahun Ini</button>
+                    <button type="button" data-range="custom">Kustom</button>
+                </div>
+
+                <form class="custom-range" id="customRangeForm" hidden>
+                    <label>
+                        Dari
+                        <input
+                            type="month"
+                            name="from"
+                            value="{{ $trend['from'] }}"
+                            max="{{ now()->format('Y-m') }}"
+                            placeholder="YYYY-MM"
+                            required
+                        >
+                    </label>
+
+                    <label>
+                        Sampai
+                        <input
+                            type="month"
+                            name="to"
+                            value="{{ $trend['to'] }}"
+                            max="{{ now()->format('Y-m') }}"
+                            placeholder="YYYY-MM"
+                            required
+                        >
+                    </label>
+
+                    <button type="submit" class="btn-apply">Terapkan</button>
+                </form>
+
+            </div>
+
+            <p class="chart-error" id="trendError" hidden>
+                Data grafik gagal dimuat. Coba lagi.
+            </p>
+
+
+            <div class="chart-wrap" id="trendChartWrap">
+
+                {{-- Digambar oleh JavaScript sesuai lebar kontainer (lihat @push scripts) --}}
+                <div
                     class="trend-chart"
-                    viewBox="0 0 {{ $chart['width'] }} {{ $chart['height'] }}"
+                    id="trendChart"
                     role="img"
-                    aria-label="Grafik kunjungan 6 bulan terakhir"
-                >
-                    <defs>
-                        <linearGradient id="trendAreaFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#5b8266" stop-opacity=".28"></stop>
-                            <stop offset="100%" stop-color="#5b8266" stop-opacity="0"></stop>
-                        </linearGradient>
-                    </defs>
+                    aria-label="Grafik kunjungan per bulan"
+                ></div>
 
-                    @foreach ($chart['grid'] as $grid)
-                        <line
-                            class="grid-line"
-                            x1="{{ $chart['left'] }}"
-                            x2="{{ $chart['right'] }}"
-                            y1="{{ $grid['y'] }}"
-                            y2="{{ $grid['y'] }}"
-                        ></line>
+                <div class="chart-tooltip" id="trendChartTooltip" hidden></div>
 
-                        <text
-                            class="axis-label"
-                            x="{{ $chart['left'] - 10 }}"
-                            y="{{ $grid['y'] + 4 }}"
-                            text-anchor="end"
-                        >{{ $grid['value'] }}</text>
-                    @endforeach
-
-                    <polygon class="area" points="{{ $chart['area'] }}"></polygon>
-
-                    <polyline class="line" points="{{ $chart['line'] }}"></polyline>
-
-                    @foreach ($chart['points'] as $index => $point)
-                        @php
-                            $isCurrent = $index === $lastPointIndex;
-                        @endphp
-
-                        <g>
-                            <title>{{ $point['full_label'] }}: {{ $point['total'] }} kunjungan</title>
-
-                            <circle
-                                class="point {{ $isCurrent ? 'is-current' : '' }}"
-                                cx="{{ $point['x'] }}"
-                                cy="{{ $point['y'] }}"
-                                r="{{ $isCurrent ? 6 : 5 }}"
-                            ></circle>
-
-                            <text
-                                class="point-value"
-                                x="{{ $point['x'] }}"
-                                y="{{ $point['y'] - 14 }}"
-                                text-anchor="middle"
-                            >{{ $point['total'] }}</text>
-
-                            <text
-                                class="month-label {{ $isCurrent ? 'is-current' : '' }}"
-                                x="{{ $point['x'] }}"
-                                y="{{ $chart['bottom'] + 24 }}"
-                                text-anchor="middle"
-                            >{{ $point['label'] }}</text>
-                        </g>
-                    @endforeach
-                </svg>
-
-                @if ($sixMonthTotal === 0)
-                    <div class="chart-empty">
-                        <span>Belum ada kunjungan dalam 6 bulan terakhir</span>
-                    </div>
-                @endif
+                <div class="chart-empty" id="trendEmpty" @if ($trend['total'] > 0) hidden @endif>
+                    <span>Belum ada kunjungan pada rentang ini</span>
+                </div>
 
             </div>
 
@@ -990,7 +1145,7 @@
                     </span>
 
                     <div class="summary-info">
-                        <div class="summary-label">Rata-rata per bulan</div>
+                        <div class="summary-label">Rata-rata per bulan (6 bulan terakhir)</div>
                         <div class="summary-value">
                             {{ number_format($averagePerMonth, 0, ',', '.') }}
                             <small>kunjungan</small>
@@ -1017,6 +1172,34 @@
                             <span style="width: {{ $usedPercentage }}%;"></span>
                         </div>
                     </div>
+                </div>
+
+                <div class="summary-item">
+                    <span class="kpi-icon is-warn">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                    </span>
+
+                    <div class="summary-info">
+                        <div class="summary-label">Belum pernah dibuka</div>
+                        <div class="summary-value">
+                            {{ $notUsedApplications }}
+                            <small>aplikasi</small>
+                        </div>
+                    </div>
+
+                    @if ($notUsedApplications > 0)
+                        <a href="{{ route('superadmin.applications.index') }}" class="kpi-link">
+                            Tinjau
+                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                    @endif
                 </div>
 
             </div>
@@ -1117,11 +1300,11 @@
 
                                 @if ($application->current_month_visits > 0 || $application->last_month_visits > 0)
                                     <span
-                                        class="trend-chip {{ $application->usage_trend }}"
-                                        title="Bulan ini vs bulan lalu"
+                                        class="trend-chip {{ $application->usage_trend === 'new' ? 'up' : $application->usage_trend }}"
+                                        title="Bulan ini: {{ $application->current_month_visits }}, bulan lalu: {{ $application->last_month_visits }}"
                                     >
                                         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">{!! $trendIcons[$application->usage_trend] !!}</svg>
-                                        {{ abs($application->usage_change) }}%
+                                        {{ $trendText($application->usage_trend, $application->usage_change) }}
                                     </span>
                                 @endif
 
@@ -1155,3 +1338,329 @@
 </div>
 
 @endsection
+
+
+@push('scripts')
+<script>
+    /*
+    |--------------------------------------------------------------------------
+    | GRAFIK TREN KUNJUNGAN PER BULAN + FILTER RENTANG WAKTU
+    |--------------------------------------------------------------------------
+    |
+    | Grafik batang digambar sesuai ukuran asli kontainer supaya teks tidak
+    | ikut membesar. Filter memuat data lewat endpoint visits-trend tanpa
+    | reload halaman.
+    |
+    */
+
+    (function () {
+
+        const trendUrl = @json(route('superadmin.dashboard.visits-trend'));
+
+        let trend = @json($trend);
+
+        const wrap = document.getElementById('trendChartWrap');
+        const container = document.getElementById('trendChart');
+        const tooltip = document.getElementById('trendChartTooltip');
+        const emptyState = document.getElementById('trendEmpty');
+        const errorText = document.getElementById('trendError');
+        const periodText = document.getElementById('trendPeriod');
+        const totalText = document.getElementById('trendTotal');
+        const averageText = document.getElementById('trendAverage');
+        const rangeButtons = document.querySelectorAll('.segmented [data-range]');
+        const customForm = document.getElementById('customRangeForm');
+
+        if (!container) {
+            return;
+        }
+
+        const NS = 'http://www.w3.org/2000/svg';
+
+        const formatNumber = value => Number(value).toLocaleString('id-ID');
+
+        function el(tag, attributes = {}, text = null) {
+            const node = document.createElementNS(NS, tag);
+
+            Object.entries(attributes).forEach(([key, value]) => {
+                node.setAttribute(key, value);
+            });
+
+            if (text !== null) {
+                node.textContent = text;
+            }
+
+            return node;
+        }
+
+        // Batas atas sumbu Y yang rapi (1, 2, 5 x 10^n per garis)
+        function getScale(maxValue) {
+            if (maxValue <= 4) {
+                const yMax = Math.max(maxValue, 1);
+
+                return { yMax, ticks: yMax };
+            }
+
+            const rawStep = maxValue / 4;
+            const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+            const normalized = rawStep / magnitude;
+            const niceStep = (normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10) * magnitude;
+
+            return { yMax: niceStep * 4, ticks: 4 };
+        }
+
+        function showTooltip(month, x, y) {
+            tooltip.replaceChildren();
+
+            const strong = document.createElement('strong');
+            strong.textContent = `${formatNumber(month.total)} kunjungan`;
+
+            tooltip.append(strong, month.full_label);
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+            tooltip.hidden = false;
+        }
+
+        function hideTooltip() {
+            tooltip.hidden = true;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | GAMBAR GRAFIK BATANG
+        |--------------------------------------------------------------------------
+        */
+
+        function render() {
+            const months = trend.months || [];
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            if (!width || !height || !months.length) {
+                container.replaceChildren();
+                return;
+            }
+
+            const padding = { top: 24, right: 8, bottom: 30, left: 38 };
+            const maxValue = Math.max(0, ...months.map(month => month.total));
+            const { yMax, ticks } = getScale(maxValue);
+
+            const plotWidth = width - padding.left - padding.right;
+            const plotHeight = height - padding.top - padding.bottom;
+            const bottom = padding.top + plotHeight;
+            const slot = plotWidth / months.length;
+            const barWidth = Math.max(6, Math.min(44, slot * 0.6));
+
+            // Label bulan & angka dijarangkan jika kolom terlalu sempit
+            const labelEvery = Math.ceil(42 / slot);
+            const showValues = slot >= 30;
+
+            const svg = el('svg', {
+                width,
+                height,
+                viewBox: `0 0 ${width} ${height}`,
+                'aria-hidden': 'true',
+            });
+
+            // Garis grid & label sumbu Y
+            for (let tick = 0; tick <= ticks; tick++) {
+                const value = (yMax / ticks) * tick;
+                const y = bottom - ((value / yMax) * plotHeight);
+
+                svg.append(
+                    el('line', { class: 'grid-line', x1: padding.left, x2: width - padding.right, y1: y, y2: y }),
+                    el('text', { class: 'axis-label', x: padding.left - 10, y: y + 4, 'text-anchor': 'end' }, formatNumber(Math.round(value)))
+                );
+            }
+
+            months.forEach((month, index) => {
+                const center = padding.left + (slot * index) + (slot / 2);
+                const barHeight = (month.total / yMax) * plotHeight;
+                const barTop = bottom - barHeight;
+                const group = el('g');
+
+                group.append(
+                    el('rect', {
+                        class: 'bar-hover',
+                        x: center - (slot / 2) + 2,
+                        y: padding.top - 8,
+                        width: Math.max(0, slot - 4),
+                        height: plotHeight + 8,
+                        rx: 8,
+                    })
+                );
+
+                if (month.total > 0) {
+                    group.append(
+                        el('rect', {
+                            class: `bar${month.is_current ? ' is-current' : ''}`,
+                            x: center - (barWidth / 2),
+                            y: barTop,
+                            width: barWidth,
+                            height: Math.max(barHeight, 2),
+                            rx: Math.min(6, barWidth / 3),
+                        })
+                    );
+
+                    if (showValues) {
+                        group.append(
+                            el('text', { class: 'bar-value', x: center, y: barTop - 7, 'text-anchor': 'middle' }, formatNumber(month.total))
+                        );
+                    }
+                }
+
+                const isLast = index === months.length - 1;
+
+                if (index % labelEvery === 0 || isLast) {
+                    group.append(
+                        el('text', {
+                            class: `month-label${month.is_current ? ' is-current' : ''}`,
+                            x: center,
+                            y: bottom + 20,
+                            'text-anchor': 'middle',
+                        }, month.label)
+                    );
+                }
+
+                // Area hover/tap selebar satu kolom bulan
+                const hitArea = el('rect', {
+                    class: 'hit-area',
+                    x: center - (slot / 2),
+                    y: 0,
+                    width: slot,
+                    height,
+                });
+
+                hitArea.addEventListener('mouseenter', () => {
+                    group.classList.add('is-hovered');
+                    showTooltip(month, center, Math.min(barTop, bottom - 4));
+                });
+
+                hitArea.addEventListener('mouseleave', () => {
+                    group.classList.remove('is-hovered');
+                    hideTooltip();
+                });
+
+                group.append(hitArea);
+                svg.append(group);
+            });
+
+            container.replaceChildren(svg);
+
+            container.setAttribute(
+                'aria-label',
+                'Grafik kunjungan per bulan: ' + months
+                    .map(month => `${month.full_label} ${month.total}`)
+                    .join(', ')
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER RENTANG WAKTU
+        |--------------------------------------------------------------------------
+        */
+
+        function updateSummary() {
+            periodText.textContent = trend.period_label;
+            totalText.textContent = formatNumber(trend.total);
+            averageText.textContent = formatNumber(trend.average);
+            emptyState.hidden = trend.total > 0;
+        }
+
+        function setActiveButton(range) {
+            rangeButtons.forEach(button => {
+                const isActive = button.dataset.range === range;
+
+                button.classList.toggle('is-active', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+        }
+
+        let requestId = 0;
+
+        async function loadTrend(params) {
+            const currentRequest = ++requestId;
+
+            wrap.classList.add('is-loading');
+            errorText.hidden = true;
+            hideTooltip();
+
+            try {
+                const response = await fetch(
+                    `${trendUrl}?${new URLSearchParams(params)}`,
+                    { headers: { 'Accept': 'application/json' } }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Abaikan respons lama jika filter sudah diganti lagi
+                if (currentRequest !== requestId) {
+                    return;
+                }
+
+                trend = data;
+
+                updateSummary();
+                render();
+
+            } catch (error) {
+                console.error('Gagal memuat tren kunjungan:', error);
+
+                if (currentRequest === requestId) {
+                    errorText.hidden = false;
+                }
+            } finally {
+                if (currentRequest === requestId) {
+                    wrap.classList.remove('is-loading');
+                }
+            }
+        }
+
+        rangeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const range = button.dataset.range;
+
+                setActiveButton(range);
+
+                if (range === 'custom') {
+                    customForm.hidden = false;
+                    customForm.querySelector('input[name="from"]').focus();
+                    return;
+                }
+
+                customForm.hidden = true;
+
+                loadTrend({ range });
+            });
+        });
+
+        customForm.addEventListener('submit', event => {
+            event.preventDefault();
+
+            const formData = new FormData(customForm);
+
+            loadTrend({
+                from: formData.get('from'),
+                to: formData.get('to'),
+            });
+        });
+
+
+        let frame = null;
+
+        new ResizeObserver(() => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(render);
+        }).observe(container);
+
+        render();
+
+    })();
+</script>
+@endpush

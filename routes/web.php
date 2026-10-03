@@ -105,6 +105,11 @@ Route::get('/superadmin/dashboard', [
     'dashboard'
 ])->name('superadmin.dashboard');
 
+Route::get('/superadmin/dashboard/visits-trend', [
+    SuperAdminDashboardController::class,
+    'visitsTrend'
+])->name('superadmin.dashboard.visits-trend');
+
 
 /*
 |--------------------------------------------------------------------------

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Application;
 use App\Models\ApplicationVisit;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SuperAdminDashboardController extends Controller
 {
@@ -70,35 +72,21 @@ class SuperAdminDashboardController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | TREN 6 BULAN TERAKHIR
+        | TREN PER BULAN (DEFAULT 6 BULAN TERAKHIR)
         |--------------------------------------------------------------------------
+        |
+        | Rentang lain dimuat lewat endpoint visitsTrend() oleh filter di grafik.
+        |
         */
 
-        $months = [];
-
-        for ($i = 5; $i >= 0; $i--) {
-            $month = $now->copy()->subMonthsNoOverflow($i);
-
-            $months[] = [
-                'label' => $month->locale('id')->translatedFormat('M'),
-                'full_label' => $month->locale('id')->translatedFormat('F Y'),
-                'total' => ApplicationVisit::whereBetween(
-                    'visited_at',
-                    [
-                        $month->copy()->startOfMonth(),
-                        $month->copy()->endOfMonth()
-                    ]
-                )->count(),
-            ];
-        }
-
-        $sixMonthTotal = array_sum(
-            array_column($months, 'total')
+        $trend = $this->buildMonthlyTrend(
+            $sixMonthStart,
+            $currentMonthEnd
         );
 
-        $averagePerMonth = (int) round($sixMonthTotal / 6);
+        $sixMonthTotal = $trend['total'];
 
-        $chart = $this->buildChart($months);
+        $averagePerMonth = $trend['average'];
 
         /*
         |--------------------------------------------------------------------------
@@ -164,9 +152,9 @@ class SuperAdminDashboardController extends Controller
                 'usageTrend',
                 'usedApplications',
                 'months',
+                'trend',
                 'sixMonthTotal',
                 'averagePerMonth',
-                'chart',
                 'veryActiveApplications',
                 'rarelyUsedApplications',
                 'mostActiveCount'
@@ -175,20 +163,134 @@ class SuperAdminDashboardController extends Controller
     }
 
     /**
-     * Persentase perubahan dan arah tren (up / down / same).
+     * Data tren kunjungan per bulan untuk filter rentang waktu (JSON).
+     *
+     * Parameter:
+     * - range = 3 | 6 | 12 | ytd
+     * - atau from & to dengan format YYYY-MM (rentang kustom, maks. 24 bulan)
+     */
+    public function visitsTrend(Request $request)
+    {
+        $validated = $request->validate([
+            'range' => ['nullable', 'in:3,6,12,ytd'],
+            'from' => ['nullable', 'required_with:to', 'date_format:Y-m'],
+            'to' => ['nullable', 'required_with:from', 'date_format:Y-m'],
+        ]);
+
+        $now = Carbon::now();
+
+        $end = $now->copy()->endOfMonth();
+
+        if (!empty($validated['from'])) {
+            // "!" mereset tanggal ke 1 (tanpa itu tanggal 31 bisa meluber ke bulan berikutnya)
+            $start = Carbon::createFromFormat('!Y-m', $validated['from'])->startOfMonth();
+
+            $end = Carbon::createFromFormat('!Y-m', $validated['to'])->endOfMonth();
+
+            if ($start->greaterThan($end)) {
+                [$start, $end] = [
+                    $end->copy()->startOfMonth(),
+                    $start->copy()->endOfMonth(),
+                ];
+            }
+
+            // Batasi 24 bulan supaya grafik tetap terbaca
+            if ($start->diffInMonths($end) >= 24) {
+                $start = $end->copy()->subMonthsNoOverflow(23)->startOfMonth();
+            }
+        } elseif (($validated['range'] ?? null) === 'ytd') {
+            $start = $now->copy()->startOfYear();
+        } else {
+            $months = (int) ($validated['range'] ?? 6);
+
+            $start = $now->copy()
+                ->subMonthsNoOverflow($months - 1)
+                ->startOfMonth();
+        }
+
+        return response()->json(
+            $this->buildMonthlyTrend($start, $end)
+        );
+    }
+
+    /**
+     * Jumlah kunjungan per bulan dalam rentang [$start, $end].
+     *
+     * Diambil dengan satu query yang dikelompokkan per bulan,
+     * bulan tanpa kunjungan tetap ditampilkan dengan nilai 0.
+     */
+    private function buildMonthlyTrend(Carbon $start, Carbon $end): array
+    {
+        $monthExpression = DB::connection()->getDriverName() === 'sqlite'
+            ? "strftime('%Y-%m', visited_at)"
+            : "DATE_FORMAT(visited_at, '%Y-%m')";
+
+        $totals = ApplicationVisit::query()
+            ->whereBetween('visited_at', [$start, $end])
+            ->selectRaw("{$monthExpression} as month_key, COUNT(*) as total")
+            ->groupBy('month_key')
+            ->pluck('total', 'month_key');
+
+        $spansMultipleYears = $start->year !== $end->year;
+
+        $currentMonthKey = Carbon::now()->format('Y-m');
+
+        $months = [];
+
+        $cursor = $start->copy()->startOfMonth();
+
+        while ($cursor->lessThanOrEqualTo($end)) {
+            $key = $cursor->format('Y-m');
+
+            $localized = $cursor->copy()->locale('id');
+
+            $months[] = [
+                'key' => $key,
+                'label' => $spansMultipleYears
+                    ? $localized->translatedFormat("M 'y")
+                    : $localized->translatedFormat('M'),
+                'full_label' => $localized->translatedFormat('F Y'),
+                'total' => (int) ($totals[$key] ?? 0),
+                'is_current' => $key === $currentMonthKey,
+            ];
+
+            $cursor->addMonthNoOverflow();
+        }
+
+        $total = array_sum(array_column($months, 'total'));
+
+        return [
+            'months' => $months,
+            'total' => $total,
+            'average' => count($months) > 0
+                ? (int) round($total / count($months))
+                : 0,
+            'from' => $start->format('Y-m'),
+            'to' => $end->format('Y-m'),
+            'period_label' => $start->copy()->locale('id')->translatedFormat('F Y')
+                . ' – '
+                . $end->copy()->locale('id')->translatedFormat('F Y'),
+        ];
+    }
+
+    /**
+     * Persentase perubahan dan arah tren.
+     *
+     * Tren: up / down / same, atau "new" jika bulan lalu 0 dan bulan ini
+     * ada kunjungan (persentase tidak bermakna untuk kasus ini).
      */
     private function calculateTrend(int $current, int $previous): array
     {
-        if ($previous > 0) {
-            $change = round(
-                (($current - $previous) / $previous) * 100,
-                1
-            );
-        } elseif ($current > 0) {
-            $change = 100;
-        } else {
-            $change = 0;
+        if ($previous === 0) {
+            return $current > 0
+                ? [null, 'new']
+                : [0, 'same'];
         }
+
+        $change = round(
+            (($current - $previous) / $previous) * 100,
+            1
+        );
 
         $trend = match (true) {
             $change > 0 => 'up',
@@ -197,75 +299,5 @@ class SuperAdminDashboardController extends Controller
         };
 
         return [$change, $trend];
-    }
-
-    /**
-     * Koordinat grafik garis untuk SVG (viewBox 640 x 240).
-     */
-    private function buildChart(array $months): array
-    {
-        $width = 640;
-        $height = 240;
-        $paddingLeft = 40;
-        $paddingRight = 20;
-        $paddingTop = 28;
-        $paddingBottom = 34;
-
-        $maxValue = max(array_column($months, 'total') ?: [0]);
-
-        // Bulatkan batas atas sumbu Y ke kelipatan 4 supaya label gridnya rapi
-        $yMax = max(4, (int) ceil($maxValue / 4) * 4);
-
-        $plotWidth = $width - $paddingLeft - $paddingRight;
-        $plotHeight = $height - $paddingTop - $paddingBottom;
-        $bottom = $paddingTop + $plotHeight;
-
-        $step = count($months) > 1
-            ? $plotWidth / (count($months) - 1)
-            : 0;
-
-        $points = [];
-
-        foreach ($months as $index => $month) {
-            $points[] = [
-                'x' => round($paddingLeft + ($index * $step), 2),
-                'y' => round($bottom - (($month['total'] / $yMax) * $plotHeight), 2),
-                'total' => $month['total'],
-                'label' => $month['label'],
-                'full_label' => $month['full_label'],
-            ];
-        }
-
-        $gridLines = [];
-
-        for ($i = 0; $i <= 4; $i++) {
-            $gridLines[] = [
-                'y' => round($bottom - (($i / 4) * $plotHeight), 2),
-                'value' => (int) ($yMax * $i / 4),
-            ];
-        }
-
-        $line = collect($points)
-            ->map(fn ($point) => $point['x'] . ',' . $point['y'])
-            ->implode(' ');
-
-        $first = $points[0] ?? ['x' => $paddingLeft];
-        $last = end($points) ?: ['x' => $paddingLeft];
-
-        $area = $line
-            . ' ' . $last['x'] . ',' . $bottom
-            . ' ' . $first['x'] . ',' . $bottom;
-
-        return [
-            'width' => $width,
-            'height' => $height,
-            'left' => $paddingLeft,
-            'right' => $width - $paddingRight,
-            'bottom' => $bottom,
-            'points' => $points,
-            'grid' => $gridLines,
-            'line' => $line,
-            'area' => $area,
-        ];
     }
 }
