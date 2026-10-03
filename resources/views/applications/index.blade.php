@@ -11,7 +11,7 @@
     >
 
     <title>
-        Portal Aplikasi RSU Syifa Medika
+        Portal Aplikasi Syifa Global Group
     </title>
 
     <link
@@ -35,6 +35,60 @@
             max-height: 52px !important;
             object-fit: contain !important;
             object-position: left center !important;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | NAVBAR
+        |--------------------------------------------------------------------------
+        */
+
+        .header .navbar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 30px;
+            padding: 0 12px;
+            border-radius: 999px;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background-color .2s ease, color .2s ease;
+        }
+
+        .header .nav-icon {
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .header .nav-link:hover {
+            background: #eef7f4;
+            color: #0d8a72;
+        }
+
+        .header .nav-link.active {
+            background: #0d8a72;
+            color: #ffffff;
+        }
+
+        .header .nav-link:focus-visible {
+            outline: 2px solid #0d8a72;
+            outline-offset: 2px;
         }
 
 
@@ -192,6 +246,22 @@
                 max-height: 45px !important;
             }
 
+            .header .navbar {
+                gap: 2px;
+            }
+
+            .header .nav-link {
+                height: 26px;
+                padding: 0 8px;
+                gap: 4px;
+                font-size: 10px;
+            }
+
+            .header .nav-icon {
+                width: 13px;
+                height: 13px;
+            }
+
             .live-search-section {
                 padding: 30px 15px 45px;
             }
@@ -202,6 +272,27 @@
 
             .live-search-grid {
                 grid-template-columns: 1fr;
+            }
+
+        }
+
+        @media (max-width: 480px) {
+
+            /* Layar sempit: tampilkan ikon saja, teks tetap ada di title */
+            .header .nav-label {
+                display: none;
+            }
+
+            .header .nav-link {
+                width: 30px;
+                height: 30px;
+                padding: 0;
+                justify-content: center;
+            }
+
+            .header .nav-icon {
+                width: 16px;
+                height: 16px;
             }
 
         }
@@ -237,23 +328,42 @@
 
                 <a
                     href="#beranda"
-                    class="nav-link"
+                    class="nav-link active"
+                    title="Beranda"
                 >
-                    Beranda
+                    <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+
+                    <span class="nav-label">Beranda</span>
                 </a>
 
                 <a
                     href="#aplikasi-populer"
                     class="nav-link"
+                    title="Aplikasi Populer"
                 >
-                    Aplikasi Populer
+                    <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+
+                    <span class="nav-label">Aplikasi Populer</span>
                 </a>
 
                 <a
                     href="#semua-aplikasi"
                     class="nav-link"
+                    title="Semua Aplikasi"
                 >
-                    Semua Aplikasi
+                    <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                    </svg>
+
+                    <span class="nav-label">Semua Aplikasi</span>
                 </a>
 
             </nav>
@@ -1527,6 +1637,79 @@
             );
 
         @endif
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | NAVBAR AKTIF SESUAI POSISI SCROLL
+        |--------------------------------------------------------------------------
+        */
+
+        const navLinks =
+            document.querySelectorAll(
+                '.header .nav-link'
+            );
+
+        const header =
+            document.querySelector('.header');
+
+        function updateActiveNavLink() {
+
+            const offset =
+                (header ? header.offsetHeight : 0) + 80;
+
+            let currentId = 'beranda';
+
+            navLinks.forEach(link => {
+
+                const section =
+                    document.querySelector(
+                        link.getAttribute('href')
+                    );
+
+                // Lewati section yang sedang disembunyikan (mis. saat live search)
+                if (!section || section.offsetParent === null) {
+                    return;
+                }
+
+                if (
+                    section.getBoundingClientRect().top <= offset
+                ) {
+                    currentId = section.id;
+                }
+
+            });
+
+            navLinks.forEach(link => {
+
+                link.classList.toggle(
+                    'active',
+                    link.getAttribute('href') === '#' + currentId
+                );
+
+            });
+
+        }
+
+        let navTicking = false;
+
+        window.addEventListener('scroll', () => {
+
+            if (navTicking) {
+                return;
+            }
+
+            navTicking = true;
+
+            requestAnimationFrame(() => {
+                updateActiveNavLink();
+                navTicking = false;
+            });
+
+        }, { passive: true });
+
+        updateActiveNavLink();
 
     </script>
 
