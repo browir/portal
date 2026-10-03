@@ -22,11 +22,10 @@ class SuperAdminApplicationController extends Controller
         | SEARCH APLIKASI
         |--------------------------------------------------------------------------
         |
-        | Search digunakan pada halaman Kelola Aplikasi.
-        | Pencarian berdasarkan:
-        | - Nama aplikasi
-        | - URL
-        | - Deskripsi
+        | Pencarian (nama, URL, deskripsi), filter status, dan urutan
+        | dilakukan di browser. ?search= hanya dipakai sebagai nilai awal
+        | kolom pencarian, jadi semua aplikasi tetap dikirim ke halaman
+        | supaya jumlah di tab filter selalu benar.
         |
         */
 
@@ -35,25 +34,7 @@ class SuperAdminApplicationController extends Controller
         );
 
         $applications = Application::query()
-            ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where(
-                        'name',
-                        'like',
-                        '%' . $search . '%'
-                    )
-                    ->orWhere(
-                        'url',
-                        'like',
-                        '%' . $search . '%'
-                    )
-                    ->orWhere(
-                        'description',
-                        'like',
-                        '%' . $search . '%'
-                    );
-                });
-            })
+            ->withCount('visits')
             ->orderBy('name')
             ->get();
 
@@ -215,7 +196,7 @@ class SuperAdminApplicationController extends Controller
             )
             ->with(
                 'success',
-                'Aplikasi berhasil ditambahkan.'
+                'Aplikasi "' . $validated['name'] . '" berhasil ditambahkan.'
             );
     }
 
@@ -339,7 +320,7 @@ class SuperAdminApplicationController extends Controller
             )
             ->with(
                 'success',
-                'Aplikasi berhasil diperbarui.'
+                'Aplikasi "' . $application->name . '" berhasil diperbarui.'
             );
     }
 
@@ -360,13 +341,12 @@ class SuperAdminApplicationController extends Controller
 
         $application->delete();
 
+        // Kembali ke halaman sebelumnya supaya filter/pencarian tidak hilang
         return redirect()
-            ->route(
-                'superadmin.applications.index'
-            )
+            ->back(fallback: route('superadmin.applications.index'))
             ->with(
                 'success',
-                'Aplikasi berhasil dihapus.'
+                'Aplikasi "' . $application->name . '" berhasil dihapus.'
             );
     }
 
@@ -374,24 +354,33 @@ class SuperAdminApplicationController extends Controller
     |--------------------------------------------------------------------------
     | TOGGLE STATUS
     |--------------------------------------------------------------------------
+    |
+    | Dipanggil lewat fetch (JSON) dari halaman Kelola Aplikasi supaya
+    | tidak reload. Tanpa JavaScript tetap bekerja lewat submit form biasa.
+    |
     */
 
     public function toggleStatus(
+        Request $request,
         Application $application
     ) {
         $application->update([
             'is_active' => ! $application->is_active,
         ]);
 
+        $message = $application->is_active
+            ? 'Aplikasi "' . $application->name . '" diaktifkan dan tampil di portal.'
+            : 'Aplikasi "' . $application->name . '" dinonaktifkan dan disembunyikan dari portal.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'is_active' => $application->is_active,
+                'message' => $message,
+            ]);
+        }
+
         return redirect()
-            ->route(
-                'superadmin.applications.index'
-            )
-            ->with(
-                'success',
-                $application->is_active
-                    ? 'Aplikasi berhasil diaktifkan.'
-                    : 'Aplikasi berhasil dinonaktifkan.'
-            );
+            ->back(fallback: route('superadmin.applications.index'))
+            ->with('success', $message);
     }
 }
