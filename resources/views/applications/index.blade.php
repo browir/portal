@@ -396,7 +396,7 @@
                         Pusat Akses Terpadu Seluruh Aplikasi
                         <br>
 
-                        RSU Syifa Medika Banjarbaru
+                        Syifa Global Group
 
                     </h1>
 
