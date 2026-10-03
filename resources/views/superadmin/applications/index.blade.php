@@ -1224,7 +1224,7 @@
 
 
 
-                    <tbody id="applicationTableBody">
+                    <tbody>
 
 
 
