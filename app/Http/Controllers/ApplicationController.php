@@ -13,22 +13,19 @@ class ApplicationController extends Controller
             $request->input('search', '')
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | SEMUA APLIKASI
+        |--------------------------------------------------------------------------
+        |
+        | Tidak difilter dengan ?search= karena hasil pencarian ditampilkan
+        | oleh live search (endpoint search). Dengan begitu, saat pencarian
+        | dihapus, bagian "Semua Aplikasi" tetap berisi semua aplikasi.
+        |
+        */
+
         $applications = Application::query()
             ->where('is_active', true)
-            ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where(
-                        'name',
-                        'like',
-                        '%' . $search . '%'
-                    )
-                    ->orWhere(
-                        'description',
-                        'like',
-                        '%' . $search . '%'
-                    );
-                });
-            })
             ->orderBy('name')
             ->get();
 
