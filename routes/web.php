@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\AppIconController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ApplicationVisitController;
 use App\Http\Controllers\SuperAdminController;
@@ -22,6 +23,24 @@ Route::get('/', [
     ApplicationController::class,
     'index'
 ])->name('applications.index');
+
+
+/*
+|--------------------------------------------------------------------------
+| IKON APLIKASI & MANIFEST PWA (dibuat dari logo portal)
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/manifest.webmanifest', [
+    AppIconController::class,
+    'manifest'
+])->name('app-manifest');
+
+// Tanpa ekstensi .png supaya tidak ditangkap rule file statis nginx (aaPanel).
+Route::get('/app-icons/{name}', [
+    AppIconController::class,
+    'icon'
+])->where('name', '[a-z0-9-]+')->name('app-icon');
 
 
 /*

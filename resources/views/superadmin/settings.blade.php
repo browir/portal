@@ -434,7 +434,7 @@
         <div class="card-head">
             <div>
                 <h2 class="card-title">Logo Portal</h2>
-                <p class="card-subtitle">Tampil di header halaman portal dan halaman admin.</p>
+                <p class="card-subtitle">Tampil di header halaman portal dan halaman admin, serta dipakai sebagai ikon aplikasi (favicon) dan ikon PWA.</p>
             </div>
 
             <span class="logo-status {{ $hasCustomLogo ? 'is-custom' : '' }}">
@@ -520,6 +520,7 @@
                     <li>Gunakan latar transparan (PNG/WEBP), karena header berwarna putih.</li>
                     <li>Bentuk melebar (landscape), sekitar 3 : 1, misalnya 600 &times; 200 piksel.</li>
                     <li>Potong ruang kosong di sekitar logo supaya tidak terlihat kecil.</li>
+                    <li>Untuk ikon aplikasi/PWA, logo otomatis diletakkan di tengah kotak persegi berlatar putih.</li>
                 </ul>
             </div>
         </form>

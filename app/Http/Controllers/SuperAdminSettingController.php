@@ -63,6 +63,8 @@ class SuperAdminSettingController extends Controller
             Storage::disk('public')->delete($oldPath);
         }
 
+        AppIconController::clearCache();
+
         return redirect()
             ->route('superadmin.settings')
             ->with('success', 'Logo portal berhasil diperbarui.');
@@ -83,6 +85,8 @@ class SuperAdminSettingController extends Controller
         if ($oldPath) {
             Storage::disk('public')->delete($oldPath);
         }
+
+        AppIconController::clearCache();
 
         return redirect()
             ->route('superadmin.settings')

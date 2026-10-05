@@ -7,6 +7,8 @@
 
     <title>Login Super Admin</title>
 
+    @include('partials.app-icons')
+
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
 
     <style>

@@ -80,4 +80,27 @@ class Setting extends Model
             ? asset('storage/' . $path)
             : asset(self::DEFAULT_LOGO);
     }
+
+    /**
+     * Path file logo di filesystem (custom atau bawaan), untuk membuat ikon.
+     */
+    public static function logoFilePath(): string
+    {
+        $path = static::customLogoPath();
+
+        return $path
+            ? Storage::disk('public')->path($path)
+            : public_path(self::DEFAULT_LOGO);
+    }
+
+    /**
+     * Versi logo — berubah setiap logo diganti, dipakai sebagai cache buster
+     * untuk favicon, ikon PWA, dan manifest.
+     */
+    public static function logoVersion(): string
+    {
+        $file = static::logoFilePath();
+
+        return substr(md5($file . '|' . (@filemtime($file) ?: 0)), 0, 10);
+    }
 }

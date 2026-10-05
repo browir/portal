@@ -15,7 +15,7 @@
         content="Pusat akses terpadu seluruh aplikasi Syifa Global Group."
     >
 
-    <meta name="theme-color" content="#3b5d44">
+    @include('partials.app-icons')
 
     <title>
         Portal Aplikasi RSU Syifa Medika
