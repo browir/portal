@@ -449,7 +449,9 @@
                         <!-- INSTAGRAM -->
 
                         <a
-                            href="#"
+                            href="https://www.instagram.com/syifaglobal.group"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             aria-label="Instagram"
                         >
 
@@ -494,7 +496,9 @@
                         <!-- TIKTOK -->
 
                         <a
-                            href="#"
+                            href="https://www.tiktok.com/@syifaglobal.group?_r=1&_t=ZS-9AJiJywm1JA"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             aria-label="TikTok"
                         >
 
@@ -528,7 +532,9 @@
                         <!-- FACEBOOK -->
 
                         <a
-                            href="#"
+                            href="https://share.google/8xpKN42Gv2bFxnqeQ"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             aria-label="Facebook"
                         >
 
@@ -563,15 +569,33 @@
                     </h4>
 
                     <p>
-                        @rsusyifamedikabjb
+                        <a
+                            href="https://www.instagram.com/rsusyifamedikabjb"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            @rsusyifamedikabjb
+                        </a>
                     </p>
 
                     <p>
-                        @rsusyifamedikabrb
+                        <a
+                            href="https://www.instagram.com/rsusyifamedikabrb"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            @rsusyifamedikabrb
+                        </a>
                     </p>
 
                     <p>
-                        @syifaglobal.group
+                        <a
+                            href="https://www.instagram.com/syifaglobal.group"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            @syifaglobal.group
+                        </a>
                     </p>
 
                 </div>
@@ -587,7 +611,13 @@
                     </h4>
 
                     <p>
-                        @rsusyifamedikabjb
+                        <a
+                            href="https://share.google/8xpKN42Gv2bFxnqeQ"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            @rsusyifamedikabjb
+                        </a>
                     </p>
 
                 </div>

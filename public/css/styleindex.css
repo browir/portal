@@ -1456,7 +1456,7 @@ a {
 
 
 /* =========================================================
-   LOGO KARTU "SEMUA APLIKASI" - blok lebar seperti superadmin
+   LOGO KARTU "SEMUA APLIKASI" - kotak seragam, logo utuh
    (ditambahkan di paling bawah, bagian lain tidak diubah)
 ========================================================= */
 
@@ -1466,13 +1466,16 @@ a {
     border: 0;
     border-radius: 12px;
     background: #fff;
+    overflow: hidden;
 }
 
 .app-card .app-logo img {
+    display: block;
     width: 100%;
     height: 100%;
-    padding: 8px;
+    padding: 0;
     object-fit: contain;
+    object-position: center;
 }
 
 /* Tanpa foto: kotak huruf tetap seperti semula */
